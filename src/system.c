@@ -36,12 +36,9 @@
  *      1. specify the constants in "configed.H" or "noconfig.H",
  *      2. append the system-dependent routines in this file.
  */
-#if PREPROCESSED
-#include    "mcpp.H"
-#else
-#include    "system.H"
-#include    "internal.H"
-#endif
+
+#include "system.h"
+#include "internal.h"
 
 #if     HOST_SYS_FAMILY == SYS_UNIX
 #include    "unistd.h"              /* For getcwd(), readlink() */

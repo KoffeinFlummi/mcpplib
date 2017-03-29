@@ -35,12 +35,8 @@
  * placed here.
  */
 
-#if PREPROCESSED
-#include    "mcpp.H"
-#else
-#include    "system.H"
-#include    "internal.H"
-#endif
+#include "system.h"
+#include "internal.h"
 
 /*
  * Tables of character types and multi-byte character types.

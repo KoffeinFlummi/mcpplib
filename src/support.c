@@ -70,12 +70,8 @@
  *              buffer.
  */
 
-#if PREPROCESSED
-#include    "mcpp.H"
-#else
-#include    "system.H"
-#include    "internal.H"
-#endif
+#include "system.h"
+#include "internal.h"
 
 static void     scan_id( int c);
                 /* Scan an identifier           */

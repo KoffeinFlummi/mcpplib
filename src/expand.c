@@ -34,12 +34,8 @@
  * The macro expansion routines are placed here.
  */
 
-#if PREPROCESSED
-#include    "mcpp.H"
-#else
-#include    "system.H"
-#include    "internal.H"
-#endif
+#include "system.h"
+#include "internal.h"
 
 #define ARG_ERROR   (-255)
 #define CERROR      1

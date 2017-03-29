@@ -35,12 +35,8 @@
  * are placed here.
  */
 
-#if PREPROCESSED
-#include    "mcpp.H"
-#else
-#include    "system.H"
-#include    "internal.H"
-#endif
+#include "system.h"
+#include "internal.h"
 
 static int      do_if( int hash, const char * directive_name);
                 /* #if, #elif, #ifdef, #ifndef      */

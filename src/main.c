@@ -35,12 +35,8 @@
  * The post-preprocessing routines are also placed here.
  */
 
-#if PREPROCESSED                /* Use "pre-preprocessed" header    */
-#include    "mcpp.H"
-#else
-#include    "system.H"
-#include    "internal.H"
-#endif
+#include "system.h"
+#include "internal.h"
 
     /* Function pointer to expand_macro() functions.    */
     char *   (*expand_macro)( DEFBUF * defp, char * out, char * out_end
