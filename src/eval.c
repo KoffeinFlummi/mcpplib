@@ -354,7 +354,7 @@ expr_t  eval_if( void)
             if (mcpp_debug & EXPRESSION)
                 mcpp_fprintf( DBG
                         , "op %s, prec %d, stacked op %s, prec %d, skip %d\n"
-                , opname[ op], prec, opname[ opp->op], opp->prec, opp->skip);
+                , opname[op], prec, opname[(int)opp->op], opp->prec, opp->skip);
 
             /* Stack coming sub-expression of higher precedence.    */
             if (opp->prec < prec) {
@@ -444,7 +444,7 @@ expr_t  eval_if( void)
                 if (opp->op != OP_QUE) {    /* Matches ? on stack?  */
                     cerror(
                     "Misplaced \":\", previous operator is \"%s\""  /* _E_  */
-                            , opname[opp->op], 0L, NULL);
+                            , opname[(int)opp->op], 0L, NULL);
                     return  0L;
                 }
                 /* Evaluate op1.            Fall through            */
@@ -1656,7 +1656,7 @@ static void dump_stack(
 
     while (opstack < opp) {
         mcpp_fprintf( DBG, " [%2d] %2d %04o    %d %s\n", (int)(opp - opstack)
-                , opp->op, opp->prec, opp->skip, opname[ opp->op]);
+                , opp->op, opp->prec, opp->skip, opname[(int)opp->op]);
         opp--;
     }
 

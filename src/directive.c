@@ -698,6 +698,8 @@ DEFBUF *    do_define(
     int     cmp;                    /* Result of name comparison    */
     size_t  def_start, def_end;     /* Column of macro definition   */
 
+    def_start = def_end = 0;
+
     repl_base = repl_list;
     repl_end = & repl_list[ NMACWORK];
     c = skip_ws();

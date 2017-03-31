@@ -701,7 +701,7 @@ static size_t   mb_read_iso2022_jp(
             break;
 
         while (char_type[ c1 = *out_p++ = (*in_p++ & UCHARMAX)] & IJP) {
-            if (! (char_type[ *out_p++ = (*in_p++ & UCHARMAX)] & IJP)) {
+            if (! (char_type[(int)(*out_p++ = (*in_p++ & UCHARMAX))] & IJP)) {
                 error = TRUE;
                 break;
             }
@@ -738,6 +738,8 @@ static size_t   mb_read_utf8(
     do {
         unsigned int    codepoint;
         int             i, bytes;
+
+        bytes = 0;
 
         if ((char_type[ c1 & UCHARMAX] & U4_1) == U4_1)
             bytes = 4;                          /* 4-byte character */

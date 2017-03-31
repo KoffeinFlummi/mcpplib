@@ -496,7 +496,6 @@ static char *   chk_magic_balance(
 #define MAX_NEST_MAGICS 255
     char    mac_id[ MAX_NEST_MAGICS][ MAC_E_LEN_V - 2];
     char    arg_id[ MAX_NEST_MAGICS][ ARG_E_LEN_V - 2];
-    char *  mac_loc[ MAX_NEST_MAGICS];
     char *  arg_loc[ MAX_NEST_MAGICS];
     char *  mesg = "%s %ld %s-closing-comment(s) in tracing macro";
     int     mac, arg;
@@ -511,7 +510,6 @@ static char *   chk_magic_balance(
         switch (*buf_p++) {
         case MAC_CALL_START :
             if (option_flags.v) {
-                mac_loc[ mac] = buf_p - 2;
                 memcpy( mac_id[ mac], buf_p, MAC_S_LEN - 2);
             }
             mac++;
@@ -706,7 +704,8 @@ static char *   replace(
         } else {
             m_inf->locs.start_col = m_inf->locs.start_line = 0L;
         }
-        m_inf->args = m_inf->loc_args = NULL;       /* Default args */
+        m_inf->args = NULL;       /* Default args */
+        m_inf->loc_args = NULL;       /* Default args */
         for (num = 1, recurs = 0; num < m_num; num++)
             if (mac_inf[ num].defp == defp)
                 recurs++;           /* Recursively nested macro     */
@@ -1457,6 +1456,8 @@ static const char *     remove_magics(
         int     num, mark, rm, magic;
         size_t  len;
 
+        num = mark = rm = len = 0;
+
         if (c != MAC_INF) {
             scan_token( c, (--tp, &tp), ep);
             continue;
@@ -1743,12 +1744,8 @@ static char *   substitute(
  * the formal parameters in the replacement list.
  */
 {
-    char *  out_start = out;
-    const char *    arg;
     int     c;
-    int     gvar_arg;   /* gvar_arg'th argument is GCC variable argument    */
 
-    gvar_arg = (defp->nargs & GVA_ARGS) ? (defp->nargs & ~AVA_ARGS) : 0;
     *out = EOS;                             /* Ensure to termanate  */
 
     while ((c = *in++) != EOS) {
@@ -1758,45 +1755,6 @@ static char *   substitute(
                 mcpp_fprintf( DBG, " (expanding arg[%d])", c);
                 dump_string( NULL, arglist[ c - 1]);
             }
-#if COMPILER == GNUC || COMPILER == MSC
-            arg = arglist[ c - 1];
-            if (trace_macro) {
-                if (*arg == MAC_INF) {
-                    if (*++arg == MAC_ARG_START)
-                        arg += ARG_S_LEN - 1;       /* Next to magic chars  */
-                }
-            }
-#if COMPILER == GNUC
-            if (c == gvar_arg && *arg == RT_END && ! ansi) {
-                /*
-                 * GCC variadic macro and its variable argument is absent.
-                 * Note that in its "strict-ansi" mode GCC does not remove 
-                 * ',', nevertheless it ignores '##' (inconsistent
-                 * behavior).  Though GCC2 changes behavior depending the
-                 * ',' is preceded by space or not, we only count on the
-                 * "strict-ansi" flag.
-                 */
-#else
-            if ((defp->nargs & VA_ARGS) && c == (defp->nargs & ~VA_ARGS)
-                    && *arg == RT_END && mcpp_mode == STD) {
-                /* Visual C 2005 also removes ',' immediately preceding     */
-                /* absent variable arguments.  It does not use '##' though. */
-#endif
-                char *  tmp;
-                tmp = out - 1;
-                while (char_type[ *tmp & UCHARMAX] & HSP)
-                    tmp--;
-                if (*tmp == ',') {
-                    out = tmp;      /* Remove the immediately preceding ',' */
-                    if (warn_level & 1) {
-                        *out = EOS;
-                        diag_macro( CWARN,
-        "Removed ',' preceding the absent variable argument: %s"    /* _W1_ */
-                                , out_start, 0L, NULL, defp, NULL);
-                    }
-                }
-            } else
-#endif
             if ((out = rescan( NULL, arglist[ c - 1], out, out_end))
                     == NULL) {              /* Replace completely   */
                 return  NULL;               /* Error                */
@@ -1968,7 +1926,7 @@ static char *   rescan(
                         seq_len = mgc_seq.magic_end - mgc_seq.magic_start;
                         if (seq_len) {
                             insert_to_bptr( mgc_seq.magic_start, seq_len);
-                            mgc_cleared = remove_magics(
+                            mgc_cleared = (char *)remove_magics(
                                     (const char *) infile->bptr, FALSE);
                                         /* Remove pair of magics    */
                             strcpy( infile->bptr, mgc_cleared);

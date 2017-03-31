@@ -39,15 +39,7 @@
 
 #include "system.h"
 #include "internal.h"
-
-#if     HOST_SYS_FAMILY == SYS_UNIX
-#include    "unistd.h"              /* For getcwd(), readlink() */
-#elif   HOST_COMPILER == MSC || HOST_COMPILER == LCC
-#include    "direct.h"
-#define getcwd( buf, size)  _getcwd( buf, size)
-#elif   HOST_COMPILER == BORLANDC
-#include    "dir.h"
-#endif
+#include "unistd.h"              /* For getcwd(), readlink() */
 
 #include    "sys/types.h"
 #include    "sys/stat.h"                        /* For stat()       */
@@ -421,7 +413,6 @@ void    do_options(
         /* Unset system-specific and site-specific include directories ?    */
     int         set_cplus_dir;  /* Set C++ include directory ? (for GCC)*/
     int         show_path;          /* Show include directory list  */
-    DEFBUF *    defp;
     VAL_SIGN *  valp;
     int         sflag;                      /* -S option or similar */
     int         trad;                       /* -traditional         */
@@ -3422,7 +3413,7 @@ static int  open_file(
     } else {
         fname = filename;
     }
-search:
+
     fullname = norm_path( *dirp, fname, TRUE, FALSE);
                                     /* Convert to absolute path     */
     if (! fullname)                 /* Non-existent or directory    */
@@ -4238,7 +4229,7 @@ static void do_once(
         once_end = &once_list[ max_once];
         max_once *= 2;
     }
-    once_end->name = fullname;
+    once_end->name = (char *)fullname;
     once_end->len = strlen( fullname);
     once_end++;
 }
@@ -4383,79 +4374,6 @@ void    do_old( void)
 {
     static const char * const   unknown
             = "Unknown #directive \"%s\"%.0ld%s";       /* _E_ _W8_ */
-    static const char * const   ext
-            = "%s is not allowed by Standard%.0ld%s";   /* _W2_ _W8_*/
-
-#if COMPILER == GNUC
-    if (str_eq( identifier, "include_next")) {
-        if ((compiling && (warn_level & 2))
-                || (! compiling && (warn_level & 8)))
-            cwarn( ext, "#include_next", 0L
-                    , compiling ? NULL : " (in skipped block)");
-        if (! compiling)
-            return;
-        in_include = TRUE;
-        do_include( TRUE);
-        in_include = FALSE;
-        return;
-    } else if (str_eq( identifier, "warning")) {
-        if ((compiling && (warn_level & 2))
-                || (! compiling && (warn_level & 8)))
-            cwarn( ext, "#warning", 0L
-                    , compiling ? NULL : " (in skipped block)");
-        if (! compiling)
-            return;
-        cwarn( infile->buffer, NULL, 0L, NULL);
-                                    /* Always output the warning    */
-        skip_nl();
-        unget_ch();
-        return;
-    } else if (str_eq( identifier, "ident") || str_eq( identifier, "sccs")) {
-        if ((compiling && (warn_level & 1))
-                || (! compiling && (warn_level & 8))) {
-            if (str_eq( identifier, "ident"))
-                cwarn(
-    compiling ? "Ignored #ident" : "#ident (in skipped block)"  /* _W1_ _W8_*/
-                        , NULL, 0L, NULL);
-            else
-                cwarn(
-    compiling ? "Ignored #sccs" : "#sccs (in skipped block)"    /* _W1_ _W8_*/
-                        , NULL, 0L, NULL);
-        }
-        if (! compiling)
-            return;
-        skip_nl();
-        unget_ch();
-        return;
-    }
-#endif  /* COMPILER == GNUC */
-
-#if COMPILER == MSC
-    if (str_eq( identifier, "using") || str_eq( identifier, "import")) {
-                                            /* #using or #import    */
-        if (! compiling)
-            return;
-        mcpp_fputs( infile->buffer, OUT);   /* Putout the line as is*/
-        skip_nl();
-        unget_ch();
-        return;
-    }
-#endif
-
-#if SYSTEM == SYS_MAC
-    if (str_eq( identifier, "import")) {
-        if ((compiling && (warn_level & 2))
-                || (! compiling && (warn_level & 8)))
-            cwarn( ext, "#import", 0L
-                    , compiling ? NULL : " (in skipped block)");
-        if (! compiling)
-            return;
-        in_import = in_include = TRUE;
-        do_include( FALSE);
-        in_import = in_include = FALSE;
-        return;
-    }
-#endif
 
     if (! standard && do_prestd_directive())
         return;
@@ -4669,6 +4587,8 @@ static int  do_debug(
     int     num;
     int     c;
 
+    num = 0;
+
     c = skip_ws();
     if (c == '\n') {
         unget_ch();
@@ -4747,7 +4667,6 @@ static void dump_path( void)
     const char **   incptr;
     const char *    inc_dir;
     const char *    dir = "./";
-    int             i;
 
     mcpp_fputs( "Include paths are as follows --\n", DBG);
     for (incptr = incdir; incptr < incend; incptr++) {

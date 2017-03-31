@@ -1155,9 +1155,9 @@ static char *   scan_ucn(
             if (infile->fp)
                 cerror( "Illegal UCN sequence"              /* _E_  */
                         , NULL, 0L, NULL);
-                *out = EOS;
-                unget_ch();
-                return  NULL;
+            *out = EOS;
+            unget_ch();
+            return  NULL;
         }
         c = tolower( c);
         *out++ = c;
@@ -1583,16 +1583,16 @@ int     get_ch( void)
     free( file->buffer);                    /* Free buffer          */
     if (infile == NULL) {                   /* If at end of input   */
         free( file->filename);
-        free( file->src_dir);
+        free( (char *)file->src_dir);
         free( file);    /* full_fname is the same with filename for main file*/
         return  CHAR_EOF;                   /* Return end of file   */
     }
     if (file->fp) {                         /* Source file included */
         free( file->filename);              /* Free filename        */
-        free( file->src_dir);               /* Free src_dir         */
+        free( (char *)file->src_dir);       /* Free src_dir         */
         fclose( file->fp);                  /* Close finished file  */
         /* Do not free file->real_fname and file->full_fname        */
-        cur_fullname = infile->full_fname;
+        cur_fullname = (char *)infile->full_fname;
         cur_fname = infile->real_fname;     /* Restore current fname*/
         if (infile->pos != 0L) {            /* Includer was closed  */
             infile->fp = fopen( cur_fullname, "r");
@@ -1650,6 +1650,8 @@ static char *   parse_line( void)
     size_t      com_size;
     int         c;
 
+    com_size = 0;
+
     if ((sp = get_line( FALSE)) == NULL)    /* Next logical line    */
         return  NULL;                       /* End of a file        */
     if (in_asm) {                           /* In #asm block        */
@@ -1677,7 +1679,6 @@ static char *   parse_line( void)
         case '/':
             switch (*sp++) {
             case '*':                       /* Start of a comment   */
-com_start:
                 if ((sp = read_a_comment( sp, &com_size)) == NULL) {
                     free( temp);            /* End of file with un- */
                     return  NULL;           /*   terminated comment */
@@ -2294,7 +2295,7 @@ FILEINFO *  get_file(
     }
     if (src_dir) {
         file->src_dir = xmalloc( strlen( src_dir) + 1);
-        strcpy( file->src_dir, src_dir);
+        strcpy( (char *)file->src_dir, src_dir);
     } else {
         file->src_dir = NULL;
     }
