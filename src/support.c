@@ -73,6 +73,20 @@
 #include "system.h"
 #include "internal.h"
 
+#ifdef _WIN32
+
+char *stpcpy(char *dest, const char *src) {
+    char *ptr;
+
+    for (ptr = dest; *(src + (ptr - dest)) != 0; ptr++)
+        *ptr = *(src + (ptr - dest));
+    *ptr = 0;
+
+    return ptr;
+}
+
+#endif
+
 static void     scan_id( int c);
                 /* Scan an identifier           */
 static char *   scan_number( int c, char * out, char * out_end);

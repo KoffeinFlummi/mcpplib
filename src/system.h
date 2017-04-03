@@ -52,6 +52,11 @@
 
 #include    "config.h"
 
+#if _WIN32
+#undef SYSTEM
+#define SYSTEM SYS_WIN32
+#endif
+
 #ifndef COMPILER            /* No target compiler specified */
 #define COMPILER            COMPILER_UNKNOWN
 #endif
